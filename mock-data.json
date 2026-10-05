@@ -1,0 +1,36 @@
+[
+  {
+    "location": "casa da mae joana , numero 345, bairro cavalada, ararangua- SC",
+    "category": "Elétrica",
+    "priority": "red",
+    "description": "é necessário que tecnico eletricista se desloque para ver porque disjuntor do circuito 10 está desligando qundo morador liga o chuveiro",
+    "responsible": "jefinho fófó",
+    "dueDate": "2026-12-09",
+    "propriedade": "casa da mae joana , numero 345, bairro cavalada, ararangua- SC",
+    "categoria": "Elétrica",
+    "nivel": "red",
+    "descricao": "é necessário que tecnico eletricista se desloque para ver porque disjuntor do circuito 10 está desligando qundo morador liga o chuveiro",
+    "responsavel": "jefinho fófó",
+    "prazo": "2026-12-09",
+    "data": "18/09/2026, 11:33:01",
+    "status": "aberto",
+    "id": "9557bd88-824a-4b37-8b4e-7d75d34f9464"
+  },
+  {
+    "location": "casa da mae joana , numero 345, bairro cavalada, ararangua- SC",
+    "category": "Hidráulica",
+    "priority": "green",
+    "description": "inspeção preventiva realizada. sem ocorrencias ",
+    "responsible": "jefinho do fófó",
+    "dueDate": "2026-12-09",
+    "propriedade": "casa da mae joana , numero 345, bairro cavalada, ararangua- SC",
+    "categoria": "Hidráulica",
+    "nivel": "green",
+    "descricao": "inspeção preventiva realizada. sem ocorrencias ",
+    "responsavel": "jefinho do fófó",
+    "prazo": "2026-12-09",
+    "data": "18/09/2026, 11:30:54",
+    "status": "aberto",
+    "id": "836e904c-8f93-4aeb-93fa-9cf6a453e2b4"
+  }
+]

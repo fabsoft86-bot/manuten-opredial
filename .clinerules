@@ -1,0 +1,5 @@
+# Contexto do Produto
+- Aplicação: SaaS B2B multi-tenant de gestão de manutenção predial.
+- Stack: PWA mobile-first em HTML, CSS e JavaScript puro; Supabase com PostgreSQL, RLS e RBAC.
+- Monetização: take-rate de 10% a 15% sobre orçamentos de serviços e materiais.
+- Diretrizes: código modular e isolamento dos dados por `organization_id` via RLS.

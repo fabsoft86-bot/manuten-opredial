@@ -1,0 +1,9 @@
+{
+  "name": "manutencao-predial-mock-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mock": "node mock-server.js"
+  }
+}
