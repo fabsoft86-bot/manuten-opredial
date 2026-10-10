@@ -1,1 +1,18 @@
 .vercel
+node_modules/
+.next/
+*.tsbuildinfo
+.env*
+.env*.local
+!.env.example
+
+# Empty root-level placeholder files removed from the Git index.
+/a
+/chave
+/cliente
+/com
+/e
+/inicializa
+/o
+/publishable
+/URL
