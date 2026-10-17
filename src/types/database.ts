@@ -31,6 +31,11 @@ export interface Property {
   created_at: string;
 }
 
+export interface LocalProperty extends Property {
+  sync_status: SyncStatus;
+  last_modified: string;
+}
+
 export interface WorkOrder {
   id: string;
   tenant_id: string;

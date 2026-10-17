@@ -1,13 +1,38 @@
 import { supabase } from '../lib/supabase/client';
 import {
+  getPendingSyncProperties,
   getPendingSyncWorkOrders,
   indexedDB,
+  markPropertySynced,
   markWorkOrderSynced,
   workOrdersTable,
   type LocalWorkOrderDraft,
 } from '../lib/db/indexedDB';
 
 export type RemoteSyncHandler = (workOrder: LocalWorkOrderDraft) => Promise<void>;
+
+export async function syncPendingProperties(tenantId: string): Promise<void> {
+  const pending = await getPendingSyncProperties(tenantId);
+
+  for (const property of pending) {
+    const { error } = await supabase.from('properties').upsert(
+      {
+        id: property.id,
+        tenant_id: property.tenant_id,
+        name: property.name,
+        address: property.address,
+        created_at: property.created_at,
+      },
+      { onConflict: 'id' },
+    );
+
+    if (error) {
+      throw new Error(`Falha ao sincronizar imóvel: ${error.message}`);
+    }
+
+    await markPropertySynced(property.id, property.last_modified);
+  }
+}
 
 export async function pullRemoteWorkOrders(tenantId: string): Promise<void> {
   const { data, error } = await supabase
