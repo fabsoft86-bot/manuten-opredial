@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { loadIdentity } from '../lib/offlineIdentity';
 import { supabase } from '../lib/supabase/client';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -17,8 +18,20 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const isPublicRoute = pathname === '/login';
 
       try {
-        const { data } = await supabase.auth.getUser();
-        const isAuthenticated = Boolean(data.user);
+        let isAuthenticated: boolean;
+
+        if (!navigator.onLine) {
+          // Sem rede não dá para validar a sessão no servidor: usa a última identidade salva.
+          isAuthenticated = loadIdentity() !== null;
+        } else {
+          const { data, error } = await supabase.auth.getUser();
+          isAuthenticated = Boolean(data.user);
+
+          // Queda de rede durante a validação não significa sessão inválida.
+          if (!isAuthenticated && error?.name === 'AuthRetryableFetchError') {
+            isAuthenticated = loadIdentity() !== null;
+          }
+        }
 
         if (!active) {
           return;

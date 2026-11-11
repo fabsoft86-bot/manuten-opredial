@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { TenantSelector } from '../TenantSelector';
 import { useTenantContext, type TenantRole } from '../../contexts/TenantContext';
+import { clearIdentity } from '../../lib/offlineIdentity';
 import { supabase } from '../../lib/supabase/client';
 import { createProperty, getProperties, updateProperty } from '../../services/propertyRepository';
 import { workOrderRepository } from '../../services/workOrderRepository';
@@ -427,7 +428,9 @@ export function WorkOrderManager() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    clearIdentity();
+    // Sem rede, encerra só a sessão local (o logout global exigiria o servidor).
+    await supabase.auth.signOut(navigator.onLine ? undefined : { scope: 'local' });
     router.replace('/login');
   };
 

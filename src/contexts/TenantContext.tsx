@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { clearIdentity, loadIdentity, saveIdentity } from '../lib/offlineIdentity';
 import { supabase } from '../lib/supabase/client';
 
   export type TenantRole = 'admin' | 'manager' | 'technician' | 'viewer';
@@ -72,6 +73,67 @@ import { supabase } from '../lib/supabase/client';
     return { profile, tenant };
   }
 
+  function isNetworkFailure(error: unknown): boolean {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return true;
+    }
+
+    const message =
+      typeof error === 'object' && error !== null && 'message' in error
+        ? String((error as { message: unknown }).message)
+        : '';
+
+    return /failed to fetch|network|load failed/i.test(message);
+  }
+
+  /**
+   * Busca perfil e tenant no servidor e guarda uma cópia local. Se a rede falhar,
+   * usa a última cópia salva para o mesmo usuário, para o app abrir offline.
+   */
+  async function loadTenantInfo(userId: string, email?: string) {
+    if (!navigator.onLine) {
+      const cached = loadIdentity();
+
+      if (cached && cached.userId === userId) {
+        return {
+          profile: {
+            tenant_id: cached.tenant.id,
+            full_name: cached.fullName,
+            role: cached.role,
+          },
+          tenant: cached.tenant,
+        };
+      }
+    }
+
+    try {
+      const info = await fetchTenantInfo(userId);
+      saveIdentity({
+        userId,
+        email,
+        fullName: info.profile.full_name,
+        role: info.profile.role,
+        tenant: info.tenant,
+      });
+      return info;
+    } catch (error) {
+      const cached = loadIdentity();
+
+      if (cached && cached.userId === userId && isNetworkFailure(error)) {
+        return {
+          profile: {
+            tenant_id: cached.tenant.id,
+            full_name: cached.fullName,
+            role: cached.role,
+          },
+          tenant: cached.tenant,
+        };
+      }
+
+      throw error;
+    }
+  }
+
   export function TenantProvider({ children }: TenantProviderProps): ReactElement {
     const authUserIdRef = useRef<string | null>(null);
     const [tenantState, setTenantState] = useState<string | null>(null);
@@ -81,8 +143,20 @@ import { supabase } from '../lib/supabase/client';
     const [tenantError, setTenantError] = useState<string | null>(null);
 
     useEffect(() => {
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        const authUser = session?.user;
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          clearIdentity();
+        }
+
+        // Sessão expirada sem rede para renovar: mantém o usuário da última identidade salva.
+        const cachedIdentity = !session && !navigator.onLine ? loadIdentity() : null;
+        const authUser = session?.user ?? (cachedIdentity
+          ? {
+              id: cachedIdentity.userId,
+              email: cachedIdentity.email,
+              user_metadata: { full_name: cachedIdentity.fullName },
+            }
+          : undefined);
         const nextUserId = authUser?.id ?? null;
         const userChanged = authUserIdRef.current !== nextUserId;
         authUserIdRef.current = nextUserId;
@@ -112,12 +186,17 @@ import { supabase } from '../lib/supabase/client';
       return () => data.subscription.unsubscribe();
     }, []);
 
+    const sessionEmailRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+      sessionEmailRef.current = sessionUser?.email;
+    });
+
     useEffect(() => {
       const userId = sessionUser?.id;
       let active = true;
 
       if (userId) {
-        void fetchTenantInfo(userId)
+        void loadTenantInfo(userId, sessionEmailRef.current)
           .then(({ profile, tenant }) => {
             if (!active) {
               return;
@@ -166,7 +245,7 @@ import { supabase } from '../lib/supabase/client';
       }
 
       try {
-        const { profile, tenant } = await fetchTenantInfo(sessionUser.id);
+        const { profile, tenant } = await loadTenantInfo(sessionUser.id, sessionUser.email);
         setTenantList([tenant]);
         setCurrentTenantState(tenant);
         setTenantState(tenant.id);
@@ -189,6 +268,18 @@ import { supabase } from '../lib/supabase/client';
         );
       }
     };
+
+    // Ao voltar a conexão, atualiza papel/tenant (podem ter mudado enquanto estava offline).
+    const refreshTenantsRef = useRef(refreshTenants);
+    useEffect(() => {
+      refreshTenantsRef.current = refreshTenants;
+    });
+    useEffect(() => {
+      const handleOnline = () => void refreshTenantsRef.current();
+      window.addEventListener('online', handleOnline);
+
+      return () => window.removeEventListener('online', handleOnline);
+    }, []);
 
     const value: TenantContextValue = {
       tenant_id: tenantState,
