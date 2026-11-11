@@ -38,10 +38,10 @@ class FixProDB extends Dexie {
   }
 }
 
-export const indexedDB = new FixProDB();
+export const db = new FixProDB();
 
-export const workOrdersTable = indexedDB.table('work_orders');
-export const propertiesTable = indexedDB.table('properties');
+export const workOrdersTable = db.table('work_orders');
+export const propertiesTable = db.table('properties');
 
 export async function getCachedProperties(tenantId: string): Promise<LocalProperty[]> {
   return propertiesTable.where('tenant_id').equals(tenantId).sortBy('name');
@@ -49,7 +49,7 @@ export async function getCachedProperties(tenantId: string): Promise<LocalProper
 
 export async function cacheProperties(properties: Property[]): Promise<void> {
   if (properties.length > 0) {
-    await indexedDB.transaction('rw', propertiesTable, async () => {
+    await db.transaction('rw', propertiesTable, async () => {
       for (const property of properties) {
         const existing = await propertiesTable.get(property.id);
         if (existing && existing.sync_status !== 'synced') {
@@ -66,6 +66,29 @@ export async function cacheProperties(properties: Property[]): Promise<void> {
   }
 }
 
+/**
+ * Remove do cache local os itens já sincronizados que não existem mais no servidor.
+ * Itens com alterações pendentes nunca são removidos.
+ */
+export async function pruneSyncedRecords(
+  table: 'work_orders' | 'properties',
+  tenantId: string,
+  remoteIds: Iterable<string>,
+): Promise<void> {
+  const keep = new Set(remoteIds);
+  const target = db.table(table);
+
+  await db.transaction('rw', target, async () => {
+    const staleIds = (await target.where('tenant_id').equals(tenantId).toArray())
+      .filter((item) => item.sync_status === 'synced' && !keep.has(item.id))
+      .map((item) => item.id);
+
+    if (staleIds.length > 0) {
+      await target.bulkDelete(staleIds);
+    }
+  });
+}
+
 export async function getPendingSyncProperties(tenantId: string): Promise<LocalProperty[]> {
   const properties = await propertiesTable
     .where('sync_status')
@@ -79,7 +102,7 @@ export async function markPropertySynced(
   id: string,
   expectedLastModified: string,
 ): Promise<void> {
-  await indexedDB.transaction('rw', propertiesTable, async () => {
+  await db.transaction('rw', propertiesTable, async () => {
     const current = await propertiesTable.get(id);
     if (!current || current.last_modified !== expectedLastModified) {
       return;
@@ -96,7 +119,7 @@ export async function markWorkOrderSynced(
   id: string,
   expectedLastModified: string,
 ): Promise<void> {
-  await indexedDB.transaction('rw', workOrdersTable, async () => {
+  await db.transaction('rw', workOrdersTable, async () => {
     const current = await workOrdersTable.get(id);
     if (!current || current.last_modified !== expectedLastModified) {
       return;

@@ -21,7 +21,9 @@ No painel do Supabase, abra **SQL Editor**. Em um projeto novo, abra, copie e ex
 2. `docker/postgres/init/002_schema.sql` — cria tenants, perfis, imóveis e ordens de serviço, além das políticas RLS, índices e trigger.
 3. `docker/postgres/init/003_role_permissions.sql` — restringe gravações conforme o papel do perfil.
 
-Execute cada arquivo uma única vez e aguarde a conclusão antes de executar o próximo. Essas instruções são para um projeto Supabase novo. Em um projeto já configurado com `001` e `002`, execute somente `003_role_permissions.sql` para aplicar as permissões por papel.
+4. `docker/postgres/init/004_hardening.sql` — fixa o `search_path` do trigger `set_updated_at` e impede que uma ordem de serviço referencie um imóvel de outro tenant.
+
+Execute cada arquivo uma única vez e aguarde a conclusão antes de executar o próximo. Essas instruções são para um projeto Supabase novo. Em um projeto já configurado com `001` e `002`, execute somente `003_role_permissions.sql` e `004_hardening.sql`.
 
 O papel `viewer` pode consultar, mas não gravar. `technician` pode criar e atualizar ordens de serviço; apenas `admin` e `manager` podem cadastrar, editar ou excluir imóveis e excluir ordens.
 

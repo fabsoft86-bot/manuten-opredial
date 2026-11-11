@@ -2,9 +2,10 @@ import { supabase } from '../lib/supabase/client';
 import {
   getPendingSyncProperties,
   getPendingSyncWorkOrders,
-  indexedDB,
+  db,
   markPropertySynced,
   markWorkOrderSynced,
+  pruneSyncedRecords,
   workOrdersTable,
   type LocalWorkOrderDraft,
 } from '../lib/db/indexedDB';
@@ -13,6 +14,8 @@ export type RemoteSyncHandler = (workOrder: LocalWorkOrderDraft) => Promise<void
 
 export async function syncPendingProperties(tenantId: string): Promise<void> {
   const pending = await getPendingSyncProperties(tenantId);
+
+  const failures: string[] = [];
 
   for (const property of pending) {
     const { error } = await supabase.from('properties').upsert(
@@ -27,10 +30,15 @@ export async function syncPendingProperties(tenantId: string): Promise<void> {
     );
 
     if (error) {
-      throw new Error(`Falha ao sincronizar imóvel: ${error.message}`);
+      failures.push(`"${property.name}": ${error.message}`);
+      continue;
     }
 
     await markPropertySynced(property.id, property.last_modified);
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`Falha ao sincronizar imóvel(is) — ${failures.join('; ')}`);
   }
 }
 
@@ -45,7 +53,13 @@ export async function pullRemoteWorkOrders(tenantId: string): Promise<void> {
     throw new Error(`Falha ao carregar ordens do Supabase: ${error.message}`);
   }
 
-  await indexedDB.transaction('rw', workOrdersTable, async () => {
+  await pruneSyncedRecords(
+    'work_orders',
+    tenantId,
+    (data ?? []).map((remoteOrder) => remoteOrder.id),
+  );
+
+  await db.transaction('rw', workOrdersTable, async () => {
     for (const remoteOrder of data ?? []) {
       const localOrder = await workOrdersTable.get(remoteOrder.id);
 
@@ -94,10 +108,24 @@ export async function syncPendingWorkOrders(
     return [];
   }
 
+  const synced: LocalWorkOrderDraft[] = [];
+  const failures: string[] = [];
+
   for (const workOrder of pending) {
-    await remoteSyncHandler(workOrder);
-    await markWorkOrderSynced(workOrder.id, workOrder.last_modified);
+    try {
+      await remoteSyncHandler(workOrder);
+      await markWorkOrderSynced(workOrder.id, workOrder.last_modified);
+      synced.push(workOrder);
+    } catch (error) {
+      failures.push(
+        `"${workOrder.title}": ${error instanceof Error ? error.message : 'erro desconhecido'}`,
+      );
+    }
   }
 
-  return pending;
+  if (failures.length > 0) {
+    throw new Error(`Falha ao sincronizar ordem(ns) — ${failures.join('; ')}`);
+  }
+
+  return synced;
 }

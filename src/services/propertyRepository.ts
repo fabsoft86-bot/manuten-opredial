@@ -3,6 +3,7 @@ import {
   cacheProperties,
   getCachedProperties,
   propertiesTable,
+  pruneSyncedRecords,
 } from '../lib/db/indexedDB';
 import type { LocalProperty } from '../types/database';
 
@@ -26,6 +27,7 @@ export async function getProperties(tenantId: string): Promise<LocalProperty[]> 
   }
 
   const properties = data ?? [];
+  await pruneSyncedRecords('properties', tenantId, properties.map((property) => property.id));
   await cacheProperties(properties);
   const pendingById = new Map(
     cachedProperties

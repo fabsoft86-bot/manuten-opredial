@@ -121,24 +121,34 @@ export function WorkOrderManager() {
       return;
     }
 
-    const inFlight = syncInFlightRef.current;
-    if (inFlight) {
+    // Aguarda qualquer sync em andamento e executa um novo em seguida, para que
+    // edições feitas durante o sync anterior também sejam enviadas.
+    while (syncInFlightRef.current) {
       try {
-        await inFlight.promise;
-      } catch (error) {
-        if (inFlight.tenantId === targetTenantId) {
-          throw error;
-        }
-      }
-      if (inFlight.tenantId === targetTenantId) {
-        return;
+        await syncInFlightRef.current.promise;
+      } catch {
+        // o erro é tratado por quem iniciou aquele sync
       }
     }
 
     const promise = (async () => {
-      await syncPendingProperties(targetTenantId);
-      await syncPendingWorkOrders(targetTenantId);
-      await pullRemoteWorkOrders(targetTenantId);
+      const errors: Error[] = [];
+      const attempt = async (step: () => Promise<unknown>) => {
+        try {
+          await step();
+        } catch (error) {
+          errors.push(error instanceof Error ? error : new Error('Falha desconhecida na sincronização.'));
+        }
+      };
+
+      // Uma falha no envio não impede o download das ordens remotas.
+      await attempt(() => syncPendingProperties(targetTenantId));
+      await attempt(() => syncPendingWorkOrders(targetTenantId));
+      await attempt(() => pullRemoteWorkOrders(targetTenantId));
+
+      if (errors.length > 0) {
+        throw new Error(errors.map((error) => error.message).join(' | '));
+      }
     })();
     const currentSync = { tenantId: targetTenantId, promise };
     syncInFlightRef.current = currentSync;

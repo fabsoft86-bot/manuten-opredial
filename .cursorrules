@@ -11,10 +11,10 @@ Estamos construindo o "Sistema de Gestão de Manutenção Predial", um SaaS Mult
 - Front-End: PWA (HTML5, CSS3, JavaScript ES6+) com foco em usabilidade mobile-first e suporte offline.
 - Back-End / Banco de Dados: Supabase (PostgreSQL).
 - Segurança: Multi-tenancy com isolamento de dados via Row Level Security (RLS).
-- Controle de Acesso (RBAC): Perfis com permissões distintas (`admin`, `technician`, `client`).
+- Controle de Acesso (RBAC): Perfis com permissões distintas (`admin`, `manager`, `technician`, `viewer`).
 
 ## Regras de Código e Conduta
 1. Nunca altere layouts ou lógicas de negócios existentes sem validação prévia.
-2. Todo código escrito deve respeitar a separação por perfis e a isolação por `organization_id`.
+2. Todo código escrito deve respeitar a separação por perfis e a isolação por `tenant_id`.
 3. Priorize performance, código limpo e respostas diretas sem firulas desnecessárias.
 4. Antes de propor grandes refatorações, apresente um plano de execução passo a passo.
