@@ -32,10 +32,16 @@ Conflito em ordens de serviço = **mesclagem por campo (D) + pergunta ao usuári
 3. Campos diferentes alterados dos dois lados → mescla automática. Mesmo campo alterado dos dois lados → tela para o usuário escolher "manter a minha" ou "manter a do servidor". Sugestão de padrão: o status vindo do técnico tende a ser o mais confiável.
 4. Ordem **apagada no servidor** enquanto editada offline → **avisar o técnico e deixar ele escolher** entre recriar com a edição local ou descartar.
 
+## ⏸ PAUSA NA CONSTRUÇÃO — planejamento em andamento
+Leia **`docs/PLANEJAMENTO.md`** (avaliação de arquitetura, alternativas pesquisadas, roadmap por fases e decisões G0–G4).
+- **Não implementar conflitos D+C nem novos recursos** antes de G1 (motor de sync: PowerSync vs outbox próprio) e G2 (persona/gancho do MVP). Implementar agora poderia ser descartado.
+- Começa pela **Fase 0** do plano: upgrade do Next, Supabase CLI + migrations versionadas, CI/testes (incl. RLS), spike de sync, descoberta com clientes.
+
 ## Falta
-1. **Conflitos D+C** (decisões acima) — ainda não implementado. É o próximo passo.
+1. Decisões G0–G2 do plano (usuário).
 2. O usuário precisa rodar a migration 004 no Supabase e dar push no GitHub Desktop.
-3. Aviso do `next build`: o Next 16.4.0 está marcado com vulnerabilidade conhecida (advisory do npm). Decidir se faz o upgrade de `next` e `eslint-config-next` e revalidar build/lint. Obs.: o build para na primeira tentativa por causa desse aviso; repetir o comando continua normalmente.
+3. `npm audit` aponta 1 vulnerabilidade **crítica** no Next 16.0.0–16.4.0 (RCE em otimização de imagem SVG, DoS em Server Actions, RCE em `use cache`). O app não usa essas três funcionalidades, então a exposição é baixa, mas o upgrade (`npm audit fix` ou atualizar `next` + `eslint-config-next`) é barato e está na Fase 0. O `next build` para na primeira tentativa por causa desse aviso; repetir o comando continua normalmente.
+4. O `docker-compose.yml` sobe Postgres puro, mas o schema usa `auth.users`/`auth.uid()`; não funciona como ambiente local. Substituir por `supabase start` (Fase 0).
 
 ## Notas
 - `.env.local` tem as chaves do Supabase e um `VERCEL_OIDC_TOKEN`; está no `.gitignore`. Nunca colocar `service_role` em `NEXT_PUBLIC_*`.
