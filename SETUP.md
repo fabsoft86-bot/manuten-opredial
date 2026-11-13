@@ -17,11 +17,11 @@ As chaves `NEXT_PUBLIC_*` são disponibilizadas no navegador. Use somente a chav
 
 No painel do Supabase, abra **SQL Editor**. Em um projeto novo, abra, copie e execute o conteúdo dos arquivos abaixo, nesta ordem:
 
-1. `docker/postgres/init/001-uuid-ossp.sql` — habilita a extensão usada para gerar UUIDs.
-2. `docker/postgres/init/002_schema.sql` — cria tenants, perfis, imóveis e ordens de serviço, além das políticas RLS, índices e trigger.
-3. `docker/postgres/init/003_role_permissions.sql` — restringe gravações conforme o papel do perfil.
+1. `supabase/migrations/20261111000001_uuid_ossp.sql` — habilita a extensão usada para gerar UUIDs.
+2. `supabase/migrations/20261111000002_schema.sql` — cria tenants, perfis, imóveis e ordens de serviço, além das políticas RLS, índices e trigger.
+3. `supabase/migrations/20261111000003_role_permissions.sql` — restringe gravações conforme o papel do perfil.
 
-4. `docker/postgres/init/004_hardening.sql` — fixa o `search_path` do trigger `set_updated_at` e impede que uma ordem de serviço referencie um imóvel de outro tenant.
+4. `supabase/migrations/20261111000004_hardening.sql` — fixa o `search_path` do trigger `set_updated_at` e impede que uma ordem de serviço referencie um imóvel de outro tenant.
 
 Execute cada arquivo uma única vez e aguarde a conclusão antes de executar o próximo. Essas instruções são para um projeto Supabase novo. Em um projeto já configurado com `001` e `002`, execute somente `003_role_permissions.sql` e `004_hardening.sql`.
 

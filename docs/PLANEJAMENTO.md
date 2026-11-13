@@ -253,6 +253,15 @@ As estimativas são ordem de grandeza para um desenvolvedor com assistência de 
 **Fase 1 — Núcleo de dados (~2 semanas)**
 - Memberships e seleção de tenant; `deleted_at`; `version`; `work_order_events`; responsável e prazo.
 - Quebrar o `WorkOrderManager` em módulos; Zod; `liveQuery`.
+- **Preenchimento automático da OS** (feedback do fundador em 2026-11-13: o atual é "pobre"). Ideias, todas com custo zero, em ordem de retorno estimado:
+  1. Chamado por QR/link do local: imóvel, unidade e solicitante já preenchidos; a pessoa só descreve e fotografa.
+  2. Categoria e prioridade sugeridas (palavras-chave na descrição), com confirmação.
+  3. Responsável e prazo padrão por categoria ou imóvel.
+  4. Modelos de OS para serviços repetidos.
+  5. OS preventivas recorrentes geradas automaticamente.
+  6. Histórico do local ao escolher o imóvel (evita duplicidade).
+  7. Ditado por voz na descrição.
+  - **Em aberto:** o que mais incomoda (excesso de campos ou digitar tudo) e quem preenche na prática. Isso entra na descoberta com clientes (G2).
 - **Saída:** a funcionalidade atual, agora multi-cliente e testada.
 
 **Fase 2 — Sync definitivo, conflitos e mídia (~2 a 3 semanas)**

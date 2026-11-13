@@ -40,7 +40,7 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
    - Sync resiliente: um item com erro não trava os outros, e o pull sempre roda.
    - Um sync novo é feito se houver edição durante um sync em andamento.
    - Export `indexedDB` renomeado para `db`.
-2. **Migration `docker/postgres/init/004_hardening.sql`:** `search_path` no `set_updated_at` e um trigger que impede `property_id` de outro tenant. **AINDA NÃO APLICADA NO SUPABASE.**
+2. **Migration `supabase/migrations/20261111000004_hardening.sql`:** `search_path` no `set_updated_at` e um trigger que impede `property_id` de outro tenant. **AINDA NÃO APLICADA NO SUPABASE.**
 3. **Limpeza:** arquivos vazios da raiz, clone vazio `imovel` e pasta `.cursor`; pacote renomeado para `fixpro-manutencao-predial`; `.cursorrules` atualizado.
 4. **PWA (testado em Chrome via CDP, build de produção)**
    - **Instalação:** `src/app/manifest.ts`, ícones em `public/icons/` (gerados a partir de `icon.svg` com `sharp`) e metadata no layout.
@@ -90,7 +90,7 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 - Rodar a migration 004 no Supabase:
   1. Abra o painel do Supabase e entre em **SQL Editor**.
   2. Clique em **New query**.
-  3. Cole o conteúdo de `docker/postgres/init/004_hardening.sql`.
+  3. Cole o conteúdo de `supabase/migrations/20261111000004_hardening.sql`.
   4. Clique em **Run**.
   - Quando adotarmos a CLI, a 004 vira uma migration versionada.
 - Dar push dos commits pelo GitHub Desktop.
