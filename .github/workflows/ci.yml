@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    name: App (tipos, lint e build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run build
+        env:
+          # Valores falsos: o build so precisa que as variaveis existam.
+          NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+
+  banco:
+    name: Banco (migrations do zero)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Sobe o Supabase local (Docker do runner) e aplica todas as migrations.
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit
+      # Falha se alguma migration der erro ou se o schema divergir.
+      - run: supabase db reset
+      - run: supabase db lint --level warning
