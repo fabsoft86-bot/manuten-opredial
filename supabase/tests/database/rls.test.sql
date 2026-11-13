@@ -58,10 +58,10 @@ update public.work_orders set title = 'hackeada'
   where id = 'b0000000-0000-0000-0000-0000000000b1';
 delete from public.work_orders where id = 'b0000000-0000-0000-0000-0000000000b1';
 
-select throws_ok(
-  $$ update public.profiles set tenant_id = 'bbbbbbbb-0000-0000-0000-000000000002'
-     where id = 'a1a1a1a1-0000-0000-0000-000000000001' $$,
-  '42501', null, 'usuário não consegue trocar o próprio tenant');
+-- Sem política de UPDATE em profiles, a RLS bloqueia em silêncio (0 linhas).
+-- O resultado é conferido depois do reset role.
+update public.profiles set tenant_id = 'bbbbbbbb-0000-0000-0000-000000000002'
+  where id = 'a1a1a1a1-0000-0000-0000-000000000001';
 
 select lives_ok(
   $$ insert into public.properties (tenant_id, name)
@@ -72,6 +72,11 @@ reset role;
 select is((select title from public.work_orders
            where id = 'b0000000-0000-0000-0000-0000000000b1'),
   'OS B original', 'ordem do tenant B continua intacta (update e delete do admin A não tiveram efeito)');
+
+select is((select tenant_id from public.profiles
+           where id = 'a1a1a1a1-0000-0000-0000-000000000001'),
+  'aaaaaaaa-0000-0000-0000-000000000001'::uuid,
+  'usuário não consegue trocar o próprio tenant');
 
 -- --------------------------------------------------- técnico do cliente A
 set local role authenticated;
