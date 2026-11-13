@@ -103,6 +103,14 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 - **Teste offline real:** há um script de exemplo que dirige o Chrome via CDP (`--remote-debugging-port`) e simula offline com `Network.emulateNetworkConditions`. Ele não está no repositório; recrie em `scratchpad` se precisar.
 - **Supabase grátis pausa após 7 dias sem uso.** Se der erro de conexão, verifique no painel se o projeto está pausado.
 
+## 10b. Supabase em uso (atualizado em 2026-11-13)
+- **Projeto oficial:** `gofinznitroahbspsrqn`. O `.env.local` aponta para ele e usa a chave *publishable* (`sb_publishable_…`). A `sb_secret_…` nunca entra no app.
+- O projeto antigo `xfwvaxgqpfaoowebweuh` ficou para trás (o usuário vai apagar ou pausar). Não usar.
+- As migrations 002, 003 e 004 **já foram aplicadas** no projeto oficial. Existem o usuário `fabsoft86@gmail.com` (admin), o tenant "FabSoft" e o perfil. O login local foi confirmado pelo usuário.
+- Senha de teste fraca (`123321`): trocar antes de ter clientes.
+- O projeto grátis pausa por inatividade. Para retomar: painel, **Resume project**.
+- Erro "Invalid login credentials" com usuário existente = quase sempre projeto Supabase errado: compare o código na URL do painel com o do `.env.local`.
+
 ## 11. Notas
 - `.env.local` tem as chaves do Supabase e um `VERCEL_OIDC_TOKEN` e está no `.gitignore`. Nunca coloque `service_role` em `NEXT_PUBLIC_*`.
 - Verificações: `npx tsc --noEmit` e `npm run lint` (passam no último commit).
