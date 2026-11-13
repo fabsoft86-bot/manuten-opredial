@@ -37,3 +37,5 @@ jobs:
       # Falha se alguma migration der erro ou se o schema divergir.
       - run: supabase db reset
       - run: supabase db lint --level warning
+      # Testes de RLS (supabase/tests/database): isolamento entre clientes e papeis.
+      - run: supabase test db
