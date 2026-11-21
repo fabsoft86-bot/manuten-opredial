@@ -1,12 +1,12 @@
 # HANDOFF — FixPro (Manutenção Predial)
 
 > Documento de passagem entre sessões do Claude Code. **Leia inteiro antes de agir.**
-> Última atualização: 2026-11-11 (sessão 1, concluída com Opus). Depois leia `docs/PLANEJAMENTO.md` (revisão r2).
+> Última atualização: 2026-11-21 (registro do progresso da Fase 0 feito após a sessão 1). Depois leia `docs/PLANEJAMENTO.md` (revisão r2).
 
 ---
 
 ## 1. Situação em uma frase
-O app funciona como protótipo (ordens de serviço offline com Supabase). **A construção está em pausa**, aguardando as decisões do planejamento (G0, G1, G2 e G5). O próximo trabalho é a **Fase 0** do plano.
+O app funciona como protótipo (ordens de serviço offline com Supabase). **A construção de funcionalidades está em pausa**, aguardando as decisões do planejamento (G0, G1, G2 e G5). A **Fase 0** está em andamento: upgrade do Next, Supabase CLI, CI e testes de RLS já foram feitos (seção 5b). Faltam SMTP, backup, prova da exportação estática e a fatia vertical do outbox.
 
 ## 2. O projeto
 - **Produto:** SaaS B2B multi-cliente de gestão de manutenção predial para imobiliárias, síndicos e prestadores. O modelo de negócio previsto é freemium com take-rate de 10–15% sobre orçamentos e compras (ver `.cursorrules`).
@@ -23,7 +23,7 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 - Usa Opus para planejamento/arquitetura e Sonnet para implementação.
 
 ## 4. Localização e git
-- **Pasta oficial:** `C:\Users\Desktop\Desktop\PROJETOS TI\fixpro-manutencao-predial`
+- **Pasta de trabalho atual:** `C:\Users\lacer\OneDrive\Área de Trabalho\PROJETOS TI\network-dashboard\manuten-opredial` (a pasta mudou desde a sessão 1).
 - A pasta antiga `PROJETOS TI\MANUTENÇÃO_PREDIAL` é uma cópia obsoleta e o usuário vai apagá-la. **Não trabalhar nela.**
 - **Remoto:** `github.com/fabsoft86-bot/manuten-opredial`, branch `main`. Os commits são locais e o **push é feito pelo usuário** no GitHub Desktop.
 - **Commits desta sessão:**
@@ -32,7 +32,13 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
   - `1ad71c3`: PWA.
   - `7f669b3`: correção do HANDOFF.
   - `25ced2e`: planejamento r1.
-  - O commit seguinte traz o planejamento r2, o `CLAUDE.md` e este HANDOFF.
+  - `c0a74db`: planejamento r2, `CLAUDE.md` e este HANDOFF.
+- **Commits posteriores (Fase 0):**
+  - `4778f75`: Next e `eslint-config-next` atualizados para 16.4.6 (corrige a vulnerabilidade crítica).
+  - `7438b73`: registra o projeto Supabase oficial e as migrations aplicadas.
+  - `a7db59e`: adota a Supabase CLI (migrations versionadas), remove o `docker-compose` e registra as ideias de preenchimento automático da OS.
+  - `8bfe92e`: CI no GitHub Actions.
+  - `fa62f15` e `7d42a03`: testes de RLS em pgTAP rodando no CI.
 
 ## 5. O que já foi feito (sessão 1)
 1. **Revisão inicial e correções**
@@ -57,6 +63,20 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
    - **Não testado:** login real com Supabase passando por offline e de volta online, e instalação em celular.
 5. **Planejamento** (`docs/PLANEJAMENTO.md`, r2): pesquisa de alternativas, decisões e roadmap.
 
+## 5b. Progresso da Fase 0 (feito depois da sessão 1)
+1. **Next atualizado** para 16.4.6 (e `eslint-config-next`). Item 1 da Fase 0 concluído.
+2. **Supabase CLI adotada** (item 2 da Fase 0):
+   - `supabase/config.toml` e migrations em `supabase/migrations/` (001 a 004), versionadas.
+   - A 001 (`uuid_ossp`) está vazia; o `CREATE EXTENSION` está no início da 002.
+   - `docker-compose.yml` removido.
+   - Ainda **não verificado**: `supabase gen types` (o tipo em `src/types/database.ts` continua escrito à mão).
+3. **CI** em `.github/workflows/ci.yml`, com dois jobs:
+   - **App:** `tsc --noEmit`, `npm run lint` e `npm run build`.
+   - **Banco:** `supabase start`, `supabase db reset` (migrations do zero), `supabase db lint --level warning` e `supabase test db`.
+   - Ainda **não há** Vitest nem Playwright (o item 3 da Fase 0 está só parcialmente feito).
+4. **Testes de RLS** em `supabase/tests/database/rls.test.sql` (pgTAP): isolamento entre tenants e permissões por papel. Detalhe aprendido: a RLS bloqueia em silêncio (0 linhas afetadas), não com exceção.
+5. A migration 004 já foi aplicada no Supabase oficial (seção 10b), então a pendência antiga de rodá-la no SQL Editor **não existe mais**.
+
 ## 6. Decisões já tomadas pelo usuário
 - **Conflitos de sync = D + C:**
   - Campos diferentes alterados dos dois lados são mesclados automaticamente.
@@ -77,22 +97,19 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 - **G2 — persona do MVP** (sugestão): síndico/administradora pequena + zelador, com chamado por link/QR. Depende de **conversas com clientes**, que o usuário precisa fazer.
 
 ## 8. Próximos passos (Fase 0, quando o usuário aprovar)
-1. Upgrade do Next e do `eslint-config-next`. O `npm audit` acusa uma vulnerabilidade **crítica** no Next 16.0.0–16.4.0 em recursos que não usamos. Depois, revalidar build, lint e o teste offline.
-2. Supabase CLI: `supabase init`, converter 001 a 004 em migrations versionadas, `supabase start`, `supabase gen types`. **Remover o `docker-compose.yml`**: ele sobe Postgres puro, mas o schema usa `auth.users`, então não funciona.
-3. CI (GitHub Actions) com Vitest, testes de RLS e o smoke offline no Playwright.
-4. SMTP próprio com cota gratuita e backup semanal cifrado (`supabase db dump`).
-5. Prova da exportação estática e publicação de teste (G5).
-6. Fatia vertical do outbox (G1).
+Feitos: ~~upgrade do Next~~, ~~Supabase CLI com migrations versionadas e remoção do `docker-compose`~~, ~~CI básico~~, ~~testes de RLS~~ (ver seção 5b).
+
+Faltam:
+1. Rodar `supabase gen types` e passar a usar os tipos gerados em vez de `src/types/database.ts`.
+2. Completar o CI: Vitest e o smoke offline no Playwright. Revalidar o teste offline depois do upgrade do Next.
+3. SMTP próprio com cota gratuita e backup semanal cifrado (`supabase db dump`).
+4. Prova da exportação estática e publicação de teste (G5). O `next.config.ts` ainda usa `headers()` (não funciona com `output: 'export'`) e `src/app/work-orders/page.tsx` usa `redirect()`.
+5. Fatia vertical do outbox (G1).
 - **Não implementar** conflitos D+C, fotos, orçamentos nem pagamentos antes disso.
 
 ## 9. Pendências do usuário
 - Aprovar ou ajustar o plano (G0) e responder G2 (para quem é o MVP).
-- Rodar a migration 004 no Supabase:
-  1. Abra o painel do Supabase e entre em **SQL Editor**.
-  2. Clique em **New query**.
-  3. Cole o conteúdo de `supabase/migrations/20261111000004_hardening.sql`.
-  4. Clique em **Run**.
-  - Quando adotarmos a CLI, a 004 vira uma migration versionada.
+- ~~Rodar a migration 004 no Supabase~~: já aplicada (seção 10b) e agora versionada na CLI.
 - Dar push dos commits pelo GitHub Desktop.
 - Apagar a pasta antiga `MANUTENÇÃO_PREDIAL` depois de abrir a pasta nova no VS Code.
 
@@ -113,5 +130,6 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 
 ## 11. Notas
 - `.env.local` tem as chaves do Supabase e um `VERCEL_OIDC_TOKEN` e está no `.gitignore`. Nunca coloque `service_role` em `NEXT_PUBLIC_*`.
-- Verificações: `npx tsc --noEmit` e `npm run lint` (passam no último commit).
+- Verificações: `npx tsc --noEmit` e `npm run lint` (passavam na sessão 1; rode `npm ci` antes se `node_modules` não existir na pasta).
+- Migrations novas: crie com a Supabase CLI e aplique com `supabase db push`, não pelo SQL Editor (aplicar pelo painel quebra o `db push`).
 - Regra do projeto (`.cursorrules`): não alterar layout nem regra de negócio sem validação; planejar antes de grandes refatorações.
