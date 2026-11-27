@@ -1,6 +1,6 @@
 # FixPro — Avaliação de arquitetura e planejamento
 
-**Status:** proposta para decisão. Nenhuma funcionalidade nova até as decisões G0–G2.
+**Status:** G0 decidido em 2026-11-27: em vez de completar a Fase 0 antes de construir, a prioridade é um piloto gratuito com o primeiro cliente (ver `docs/PORTE_VERSAO_ANTIGA.md`). Este documento continua valendo como arquitetura e roadmap de longo prazo.
 **Restrição do dono do produto:** **custo zero** até existirem clientes pagantes que justifiquem qualquer upgrade.
 
 | Revisão | Data | O que mudou |
@@ -298,9 +298,9 @@ As estimativas são ordem de grandeza para um desenvolvedor com assistência de 
 
 | # | Decisão | Quando | Recomendação |
 |---|---|---|---|
-| G0 | Aprovar o plano e a pausa em novos recursos | Agora | Sim |
+| G0 | Aprovar o plano e a pausa em novos recursos | Agora | **Decidido (2026-11-27):** pausa encerrada; foco no piloto com o primeiro cliente (`docs/PORTE_VERSAO_ANTIGA.md`) |
 | G1 | Sync: outbox próprio (A) × PowerSync (B) | Fim da Fase 0 | **A**, no formato compatível com B |
-| G2 | Persona e gancho do MVP | Fim da descoberta | Síndico/administradora pequena + zelador; chamado por QR |
+| G2 | Persona e gancho do MVP | Fim da descoberta | Síndico/administradora pequena + zelador; chamado por QR. Será respondido pelas conversas com condomínios do piloto |
 | G3 | PWA × Capacitor/nativo | Depois do piloto, e só com receita | PWA até haver evidência |
 | G4 | Modelo de cobrança (assinatura × take-rate) | Antes da Fase 4 | Piloto grátis; decidir com dados |
 | G5 | Hospedagem estática gratuita com uso comercial permitido | Fase 0 | Exportação estática; confirmar os termos do Cloudflare Pages (ou alternativa) |

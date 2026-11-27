@@ -1,12 +1,17 @@
 # HANDOFF — FixPro (Manutenção Predial)
 
 > Documento de passagem entre sessões do Claude Code. **Leia inteiro antes de agir.**
-> Última atualização: 2026-11-21 (registro do progresso da Fase 0 feito após a sessão 1). Depois leia `docs/PLANEJAMENTO.md` (revisão r2).
+> Última atualização: 2026-11-27 (fim da pausa: prioridade agora é o piloto com o primeiro cliente). Depois leia **`docs/PORTE_VERSAO_ANTIGA.md`** (o plano em vigor) e `docs/PLANEJAMENTO.md` (revisão r2, arquitetura e roadmap de longo prazo).
 
 ---
 
 ## 1. Situação em uma frase
-O app funciona como protótipo (ordens de serviço offline com Supabase). **A construção de funcionalidades está em pausa**, aguardando as decisões do planejamento (G0, G1, G2 e G5). A **Fase 0** está em andamento: upgrade do Next, Supabase CLI, CI e testes de RLS já foram feitos (seção 5b). Faltam SMTP, backup, prova da exportação estática e a fatia vertical do outbox.
+O app funciona como protótipo (ordens de serviço offline com Supabase). **A pausa na construção acabou em 2026-11-27**: o usuário decidiu (G0) que a prioridade é ter **um condomínio real usando o FixPro de graça até o fim de janeiro de 2027**. O plano em vigor é `docs/PORTE_VERSAO_ANTIGA.md` (seção "Direção escolhida"): Sprint 1 (formulário guiado, checklist, responsável, prazo e foto online) e Sprint 2 (backup, contas do piloto, termo de privacidade, teste no celular).
+
+## 1b. Versão antiga (referência)
+- Antes do Next.js existiu uma versão em **HTML/JS puro** (um `index.html` de ~2.400 linhas), removida do repositório em 16/10/2026. O último estado completo está no commit **`9ebb80c`** (`git show 9ebb80c:index.html`, ou `git worktree add ../versao-antiga 9ebb80c`).
+- Ela tem funcionalidades que a nova não tem (formulário guiado, checklist, sugestão de responsável, fotos, duplicado, recorrência etc.). O inventário completo está no plano.
+- **Use só como referência de regras e listas.** Não copie o código: ela guardava tudo no `localStorage` e as fotos em base64.
 
 ## 2. O projeto
 - **Produto:** SaaS B2B multi-cliente de gestão de manutenção predial para imobiliárias, síndicos e prestadores. O modelo de negócio previsto é freemium com take-rate de 10–15% sobre orçamentos e compras (ver `.cursorrules`).
@@ -83,9 +88,10 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
   - Se os dois lados mudaram o mesmo campo, o usuário escolhe "manter a minha" ou "manter a do servidor".
   - Ordem **apagada no servidor** enquanto editada offline: **avisar o técnico e deixar ele escolher** entre recriar e descartar.
 - **Custo zero** até haver cliente pagante.
-- **Pausa na construção** até decidir o plano.
+- ~~Pausa na construção até decidir o plano~~: encerrada em 2026-11-27. Prioridade: piloto com o primeiro cliente (`docs/PORTE_VERSAO_ANTIGA.md`).
+- **Foto online liberada** para o piloto. Foto offline, outbox e conflitos D+C ficam para depois.
 
-## 7. Recomendações do plano r2 (aguardando aprovação; ver seção 10 do plano)
+## 7. Recomendações do plano r2 (longo prazo; ver seção 10 do plano)
 - **G1 — sync: outbox próprio sobre Dexie (opção A)**, com mutações por campo no formato compatível com a fila do PowerSync e aplicação no servidor por uma função SQL `apply_mutation`. Assim dá para migrar ao PowerSync depois sem reescrever o servidor.
   - Motivo: o plano grátis do PowerSync pausa após 7 dias e é mais uma peça.
 - **G5 — hospedagem:** **exportação estática** (`output: 'export'`) numa hospedagem gratuita que permita uso comercial. A Vercel Hobby **proíbe uso comercial**.
@@ -96,19 +102,26 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A co
 - **PWA primeiro.** Capacitor/nativo só com evidência do piloto **e** com receita (portão G3).
 - **G2 — persona do MVP** (sugestão): síndico/administradora pequena + zelador, com chamado por link/QR. Depende de **conversas com clientes**, que o usuário precisa fazer.
 
-## 8. Próximos passos (Fase 0, quando o usuário aprovar)
-Feitos: ~~upgrade do Next~~, ~~Supabase CLI com migrations versionadas e remoção do `docker-compose`~~, ~~CI básico~~, ~~testes de RLS~~ (ver seção 5b).
+## 8. Próximos passos (piloto com o primeiro cliente)
+Feitos na Fase 0: ~~upgrade do Next~~, ~~Supabase CLI com migrations versionadas e remoção do `docker-compose`~~, ~~CI básico~~, ~~testes de RLS~~ (ver seção 5b).
 
-Faltam:
-1. Rodar `supabase gen types` e passar a usar os tipos gerados em vez de `src/types/database.ts`.
-2. Completar o CI: Vitest e o smoke offline no Playwright. Revalidar o teste offline depois do upgrade do Next.
-3. SMTP próprio com cota gratuita e backup semanal cifrado (`supabase db dump`).
-4. Prova da exportação estática e publicação de teste (G5). O `next.config.ts` ainda usa `headers()` (não funciona com `output: 'export'`) e `src/app/work-orders/page.tsx` usa `redirect()`.
-5. Fatia vertical do outbox (G1).
-- **Não implementar** conflitos D+C, fotos, orçamentos nem pagamentos antes disso.
+**Sprint 1 (agora)** — detalhes em `docs/PORTE_VERSAO_ANTIGA.md`:
+1. Vitest no CI + catálogo de listas (`src/core/catalog/maintenance.ts`) e regra de descrição gerada (`src/core/rules/`), extraídos de `9ebb80c`.
+2. Separar o formulário do `WorkOrderManager` (só o necessário).
+3. Formulário guiado, checklist por categoria, descrição gerada, responsável e prazo com sugestão por categoria.
+4. Foto online (até 3 por OS, comprimida, Supabase Storage). Sem rede: salvar a OS e avisar para anexar depois.
+5. Migrations de detalhes da OS e de fotos, com pgTAP, `supabase gen types`, Dexie e `syncService` atualizados.
+
+**Sprint 2:** backup semanal (`supabase db dump`), trocar a senha de teste, criar contas do piloto à mão, termo de privacidade, teste no celular real.
+
+**Antes de cobrar qualquer cliente:** exportação estática + hospedagem gratuita com uso comercial (G5). O `next.config.ts` ainda usa `headers()` e `src/app/work-orders/page.tsx` usa `redirect()`.
+
+**Depois do piloto (não implementar antes):** outbox completo (G1), conflitos D+C, foto offline, `memberships`, quadro em colunas, recorrência, áudio, status extras, orçamentos e pagamentos. Playwright e SMTP próprio também ficam para depois.
 
 ## 9. Pendências do usuário
-- Aprovar ou ajustar o plano (G0) e responder G2 (para quem é o MVP).
+- ~~Aprovar o plano (G0)~~: decidido em 2026-11-27 (direção "primeiro cliente").
+- G2 será respondido pelas conversas com condomínios: o usuário está listando 5 contatos.
+- Confirmar as 7 categorias da versão antiga (decisão D3 do plano).
 - ~~Rodar a migration 004 no Supabase~~: já aplicada (seção 10b) e agora versionada na CLI.
 - Dar push dos commits pelo GitHub Desktop.
 - Apagar a pasta antiga `MANUTENÇÃO_PREDIAL` depois de abrir a pasta nova no VS Code.
