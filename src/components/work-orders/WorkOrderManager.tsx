@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { TenantSelector } from '../TenantSelector';
+import { WorkOrderForm } from './WorkOrderForm';
 import { useTenantContext, type TenantRole } from '../../contexts/TenantContext';
 import { clearIdentity } from '../../lib/offlineIdentity';
 import { supabase } from '../../lib/supabase/client';
@@ -93,12 +94,7 @@ export function WorkOrderManager() {
   const [isOnline, setIsOnline] = useState(false);
   const syncInFlightRef = useRef<{ tenantId: string; promise: Promise<void> } | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    property_id: '',
-    title: '',
-    description: '',
-    priority: 'normal' as WorkOrderPriority,
-  });
+  const [newOrderPropertyId, setNewOrderPropertyId] = useState('');
   const [propertyForm, setPropertyForm] = useState({ name: '', address: '' });
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
@@ -260,30 +256,6 @@ export function WorkOrderManager() {
     };
   }, [tenant_id]);
 
-  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canManageWorkOrders || !form.title.trim() || !tenant_id) return;
-
-    try {
-      const newOrder = await workOrderRepository.createWorkOrder({
-        tenant_id,
-        property_id: form.property_id || null,
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        status: 'open',
-        priority: form.priority,
-      });
-
-      setForm({ property_id: '', title: '', description: '', priority: 'normal' });
-      setWorkOrders((current) => [newOrder, ...current]);
-      setDataError(null);
-    } catch (error) {
-      setDataError(
-        error instanceof Error ? error.message : 'Não foi possível salvar a ordem localmente.',
-      );
-    }
-  };
-
   const handleCreateProperty = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canManageProperties || !tenant_id || !propertyForm.name.trim()) return;
@@ -302,7 +274,7 @@ export function WorkOrderManager() {
         );
         return { tenantId: tenant_id, items };
       });
-      setForm((current) => ({ ...current, property_id: property.id }));
+      setNewOrderPropertyId(property.id);
       setPropertyForm({ name: '', address: '' });
       setDataError(null);
     } catch (error) {
@@ -1070,74 +1042,14 @@ export function WorkOrderManager() {
 
           {canManageWorkOrders ? (
             <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-slate-950/30">
-            <h2 className="mb-4 text-xl font-semibold text-white">Nova Ordem de Serviço</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div>
-                <label htmlFor="property-id" className="mb-1.5 block text-sm text-slate-300">
-                  Imóvel
-                </label>
-                <select
-                  id="property-id"
-                  value={form.property_id}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, property_id: event.target.value }))
-                  }
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400"
-                >
-                  <option value="">Sem imóvel vinculado</option>
-                  {properties.map((property) => (
-                    <option key={property.id} value={property.id}>
-                      {property.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="title" className="mb-1.5 block text-sm text-slate-300">Título</label>
-                <input
-                  id="title"
-                  value={form.title}
-                  onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none ring-0 transition focus:border-cyan-400"
-                  placeholder="Ex: Vala de drenagem entupida"
-                />
-              </div>
-              <div>
-                <label htmlFor="description" className="mb-1.5 block text-sm text-slate-300">Descrição</label>
-                <textarea
-                  id="description"
-                  value={form.description}
-                  onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-                  rows={4}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400"
-                  placeholder="Descreva o problema encontrado..."
-                />
-              </div>
-              <div>
-                <label htmlFor="priority" className="mb-1.5 block text-sm text-slate-300">Prioridade</label>
-                <select
-                  id="priority"
-                  value={form.priority}
-                  onChange={(event) => setForm((current) => ({
-                    ...current,
-                    priority: event.target.value as WorkOrderPriority,
-                  }))}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400"
-                >
-                  <option value="low">Baixa</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">Alta</option>
-                  <option value="urgent">Urgente</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                disabled={!tenant_id}
-                className="w-full rounded-xl bg-violet-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-              >
-                {tenant_id ? 'Criar Ordem de Serviço' : 'Aguardando tenant'}
-              </button>
-            </form>
+            <WorkOrderForm
+              tenantId={tenant_id}
+              properties={properties}
+              propertyId={newOrderPropertyId}
+              onPropertyIdChange={setNewOrderPropertyId}
+              onCreated={(newOrder) => setWorkOrders((current) => [newOrder, ...current])}
+              onError={setDataError}
+            />
             </aside>
           ) : (
             <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 text-sm text-slate-400">
