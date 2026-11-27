@@ -28,8 +28,9 @@ O app funciona como protótipo (ordens de serviço offline com Supabase). **A pa
 - Usa Opus para planejamento/arquitetura e Sonnet para implementação.
 
 ## 4. Localização e git
-- **Pasta de trabalho atual:** `C:\Users\lacer\OneDrive\Área de Trabalho\PROJETOS TI\network-dashboard\manuten-opredial` (a pasta mudou desde a sessão 1).
-- A pasta antiga `PROJETOS TI\MANUTENÇÃO_PREDIAL` é uma cópia obsoleta e o usuário vai apagá-la. **Não trabalhar nela.**
+- **Pasta de trabalho atual:** `C:\Users\Desktop\Desktop\PROJETOS TI\fixpro-manutencao-predial`.
+- **Pasta antiga (não usar):** `C:\Users\lacer\OneDrive\Área de Trabalho\PROJETOS TI\network-dashboard\manuten-opredial`.
+- **Pasta antiga (não usar):** `PROJETOS TI\MANUTENÇÃO_PREDIAL` é uma cópia obsoleta e o usuário vai apagá-la. **Não trabalhar nela.**
 - **Remoto:** `github.com/fabsoft86-bot/manuten-opredial`, branch `main`. Os commits são locais e o **push é feito pelo usuário** no GitHub Desktop.
 - **Commits desta sessão:**
   - `eabff72`: sync resiliente, SQL 004 e limpeza.
@@ -124,7 +125,7 @@ Feitos na Fase 0: ~~upgrade do Next~~, ~~Supabase CLI com migrations versionadas
 - Confirmar as 7 categorias da versão antiga (decisão D3 do plano).
 - ~~Rodar a migration 004 no Supabase~~: já aplicada (seção 10b) e agora versionada na CLI.
 - Dar push dos commits pelo GitHub Desktop.
-- Apagar a pasta antiga `MANUTENÇÃO_PREDIAL` depois de abrir a pasta nova no VS Code.
+- Apagar a pasta antiga (não usar) `MANUTENÇÃO_PREDIAL` depois de abrir a pasta nova no VS Code.
 
 ## 10. Armadilhas conhecidas (para não repetir)
 - **`next build` para na primeira tentativa** com um aviso de segurança e pede para rodar `next upgrade --agent=security`. Repetir o build continua normalmente. **Não rode** o upgrade sugerido pela saída da ferramenta sem o usuário aprovar.
