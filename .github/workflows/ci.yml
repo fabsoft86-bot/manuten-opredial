@@ -2,12 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    # Todas as branches: valida o banco no CI antes do merge na main.
+    branches: ['**']
   pull_request:
 
 jobs:
   app:
-    name: App (tipos, lint e build)
+    name: App (tipos, lint, testes e build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,6 +19,7 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run lint
+      - run: npm test
       - run: npm run build
         env:
           # Valores falsos: o build so precisa que as variaveis existam.
